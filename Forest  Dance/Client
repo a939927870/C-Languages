@@ -1,0 +1,129 @@
+// Client.cpp : Defines the entry point for the console application.
+//
+
+#include "stdafx.h"
+
+#include "stdafx.h"
+#include <WINSOCK2.H>
+#include <STDIO.H>
+#include <iostream.h>
+#include<stdlib.h>
+
+#pragma  comment(lib,"ws2_32.lib")
+
+//模拟系统累积库存分数
+DWORD TotalSysScore = 0;
+
+int main(int argc, char* argv[])
+{
+    WORD sockVersion = MAKEWORD(2,2);
+    WSADATA data; 
+    if(WSAStartup(sockVersion, &data) != 0)
+    {
+        return 0;
+    }
+	
+    SOCKET sclient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if(sclient == INVALID_SOCKET)
+    {
+        printf("invalid socket !");
+        return 0;
+    }
+	
+    sockaddr_in serAddr;
+    serAddr.sin_family = AF_INET;
+    serAddr.sin_port = htons(32000);
+    serAddr.sin_addr.S_un.S_addr = inet_addr("192.168.1.100"); 
+	
+    if (connect(sclient, (sockaddr *)&serAddr, sizeof(serAddr)) == SOCKET_ERROR)
+    {
+        printf("connect error !");
+        closesocket(sclient);
+        return 0;
+    }
+	
+	while (true)
+	{
+		int ReadFlag_0 = GetPrivateProfileInt("森林舞会", "动物读取内存数据完成标志", -1, "c:\\SLWH.ini");
+		int ReadFlag_1 = GetPrivateProfileInt("森林舞会", "按键精灵识别动物完成标志", -1, "c:\\SLWH.ini");
+		
+		//当两个标记变量都为1，也就是说完成了一局分数的信息采集后，开始计算分数总和
+		if (ReadFlag_0 == 1 && ReadFlag_1 == 1)
+		{
+			//读取总压分保存到字符串里
+			char MoneyAll[100] = "";
+			GetPrivateProfileString("森林舞会", "总押注", "Readerro_Money", MoneyAll, sizeof(MoneyAll), "c:\\SLWH.ini");
+			DWORD MoneyNumAll = atol(MoneyAll);
+			
+			//读取4个动物结果的名字
+			char Animal_0[30] = "";
+			char Animal_1[30] = "";
+			char Animal_2[30] = "";
+			char Animal_3[30] = "";
+			GetPrivateProfileString("森林舞会", "动物0", "Readerro_0", Animal_0, sizeof(Animal_0), "c:\\SLWH.ini");
+			GetPrivateProfileString("森林舞会", "动物1", "Readerro_1", Animal_1, sizeof(Animal_1), "c:\\SLWH.ini");
+			GetPrivateProfileString("森林舞会", "动物2", "Readerro_2", Animal_2, sizeof(Animal_2), "c:\\SLWH.ini");
+			GetPrivateProfileString("森林舞会", "动物3", "Readerro_3", Animal_3, sizeof(Animal_3), "c:\\SLWH.ini");
+			cout<<"读取的动物 = "<<Animal_0<<"  "<<Animal_1<<"  "<<Animal_2<<"  "<<Animal_3<<endl;
+			
+			//根据动物名字读取对应动物的倍率，读取不到说明这行的动物写入出错或者这行没有这个动物，
+			//返回给该动物倍率一个0值。
+			DWORD AnimalNum_0 = GetPrivateProfileInt("森林舞会", Animal_0, 0, "c:\\SLWH.ini");
+			DWORD AnimalNum_1 = GetPrivateProfileInt("森林舞会", Animal_1, 0, "c:\\SLWH.ini");
+			DWORD AnimalNum_2 = GetPrivateProfileInt("森林舞会", Animal_2, 0, "c:\\SLWH.ini");
+			DWORD AnimalNum_3 = GetPrivateProfileInt("森林舞会", Animal_3, 0, "c:\\SLWH.ini");
+			cout<<"读取的倍率 = "<<AnimalNum_0<<"  "<<AnimalNum_1<<"  "<<AnimalNum_2<<"  "<<AnimalNum_3<<endl;
+			
+			//读取对应动物的押注总和
+			DWORD AnimalScore_0 = GetPrivateProfileInt("动物分数", Animal_0, 0, "c:\\SLWH.ini");
+			DWORD AnimalScore_1 = GetPrivateProfileInt("动物分数", Animal_1, 0, "c:\\SLWH.ini");
+			DWORD AnimalScore_2 = GetPrivateProfileInt("动物分数", Animal_2, 0, "c:\\SLWH.ini");
+			DWORD AnimalScore_3 = GetPrivateProfileInt("动物分数", Animal_3, 0, "c:\\SLWH.ini");
+			cout<<"读取的押注总和 = "<<AnimalScore_0<<"  "<<AnimalScore_1<<"  "<<AnimalScore_2<<"  "<<AnimalScore_3<<endl;
+			
+			//系统出分分数
+			DWORD SysOutScore = 0;
+			SysOutScore = AnimalScore_0 * AnimalNum_0 + AnimalScore_1 * AnimalNum_1
+				+ AnimalScore_2 * AnimalNum_2 + AnimalScore_3 * AnimalNum_3;
+			
+			//系统总吃吐分数
+			DWORD SysALLScore = 0;
+			SysALLScore = MoneyNumAll - SysOutScore;
+
+			//计算模拟的系统累积库存分数
+			TotalSysScore = TotalSysScore + SysALLScore;
+			
+			char sendData[500] = "";
+			//分数信息复制到发送字符串里
+			sprintf(sendData, "玩家总压分 = %ld  系统出分 = %ld  系统总吃吐分数 = %ld  模拟系统库存分数 = %ld  动物结果 = %s %s %s %s\n", 
+				MoneyNumAll, SysOutScore, SysALLScore, TotalSysScore, Animal_0, Animal_1, Animal_2, Animal_3); 
+			//SLWH.ini文件里两个标记都归0
+			WritePrivateProfileString("森林舞会", "动物读取内存数据完成标志", "0", "c:\\SLWH.ini");
+			WritePrivateProfileString("森林舞会", "按键精灵识别动物完成标志", "0", "c:\\SLWH.ini");
+			//写入文本记录
+			FILE *fp = NULL;
+			fp = fopen("C:\\森林舞会测试大数据\\bb.txt", "at+");
+			fprintf(fp, sendData);
+			fclose(fp);
+
+			send(sclient, sendData, strlen(sendData), 0);	
+		}
+		
+		
+		//循环检测间隔2秒钟
+		Sleep(1000 * 2);
+	}
+
+	/*
+    char recData[255];
+    int ret = recv(sclient, recData, 255, 0);
+
+    if(ret > 0)
+    {
+		recData[ret] = 0x00;
+		printf(recData);
+	}*/
+    closesocket(sclient);
+    WSACleanup();
+    return 0;
+}
