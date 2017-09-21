@@ -1,0 +1,398 @@
+// Test.cpp : Defines the entry point for the console application.
+//
+//99电玩森林舞会游戏必须用这个账号才能测试得到，别的账号测试不出来，不知道什么原因
+//账号：hhhhkkkk1144
+//密码：11111111
+#include "stdafx.h"
+#include <windows.h>
+#include <process.h>
+#include <iostream.h>
+#include <direct.h>  
+#include <stdio.h>  
+#include <string.h>
+#include <time.h>
+
+#include <winsock2.h>
+#include <stdio.h>
+#pragma comment(lib,"WS2_32.lib")
+
+//森林舞会子游戏窗口句柄
+HWND Hwnd			= (HWND)2164398;
+//游戏句柄
+HANDLE hd			= NULL;
+//所有动物当前一局下注分的总和
+DWORD TotalCount	= 0; 
+//99电玩平台所有数据的总基址
+DWORD PointALL		= 0x0;
+//剩余倒计时时间指针地址偏移量
+DWORD P_RemainTime	= 0x38C;
+DWORD RemainTime	= 0;
+
+//**************动物总压分指针地址偏移量************
+//兔子总压分指针地址偏移量
+DWORD P_RabitUp		= 0x180;
+DWORD RabitUp		= 0;
+DWORD P_RabitMid	= 0x1A0;
+DWORD RabitMid		= 0;
+DWORD P_RabitDown	= 0x190;
+DWORD RabitDown		= 0;
+
+//猴子总压分指针地址偏移量
+DWORD P_MonkeyUp	= 0x18C;
+DWORD MonkeyUp		= 0;
+DWORD P_MonkeyMid	= 0x1AC;
+DWORD MonkeyMid		= 0;
+DWORD P_MonkeyDown	= 0x19C;
+DWORD MonkeyDown	= 0;
+
+//熊猫总压分指针地址偏移量
+DWORD P_PandaUp		= 0x188;
+DWORD PandaUp		= 0;
+DWORD P_PandaMid	= 0x1A8; 
+DWORD PandaMid		= 0; 
+DWORD P_PandaDown	= 0x198;
+DWORD PandaDown		= 0;
+
+//狮子总压分指针地址偏移量
+DWORD P_lionUp	    = 0x184;
+DWORD lionUp	    = 0;
+DWORD P_lionMid		= 0x1A4;
+DWORD lionMid		= 0;
+DWORD P_lionDown	= 0x194;
+DWORD lionDown		= 0;
+//************************************************
+
+//**************动物输赢倍率地址偏移量************
+//兔子倍率地址偏移量
+DWORD P_RabitUpLv	= 0xB4;
+DWORD RabitUpLv		= 0;
+DWORD P_RabitMidLv	= 0xD4;
+DWORD RabitMidLv	= 0;
+DWORD P_RabitDownLv	= 0xC4;
+DWORD RabitDownLv	= 0;
+
+//猴子倍率地址偏移量
+DWORD P_MonkeyUpLv	= 0xC0;
+DWORD MonkeyUpLv	= 0;
+DWORD P_MonkeyMidLv	= 0xE0;
+DWORD MonkeyMidLv	= 0;
+DWORD P_MonkeyDownLv= 0xD0;
+DWORD MonkeyDownLv	= 0;
+
+//熊猫倍率地址偏移量
+DWORD P_PandaUpLv	= 0xBC;
+DWORD PandaUpLv		= 0;
+DWORD P_PandaMidLv	= 0xDC;
+DWORD PandaMidLv	= 0;
+DWORD P_PandaDownLv	= 0xCC;
+DWORD PandaDownLv	= 0;
+
+//狮子倍率地址偏移量
+DWORD P_lionUpLv	= 0xB8;
+DWORD lionUpLv		= 0;
+DWORD P_lionMidLv	= 0xD8;
+DWORD lionMidLv		= 0;
+DWORD P_lionDownLv	= 0xC8;
+DWORD lionDownLv	= 0;
+//**************************************
+
+//载入配置文件变量指针等参数
+//void InitLoad();
+//读取每一个动物总压分和对应的倍率
+void ReadAnimal();
+//倒计时为0后, 开始计算所有动物当前一局压分总和
+DWORD CountAnimal();
+//统计结果写入SLWH.ini文件里
+void Wirteini();
+
+int main(int argc, char* argv[])
+{
+	//**********连接服务端部分**********
+/*
+    WORD sockVersion = MAKEWORD(2,2);
+    WSADATA data; 
+    if(WSAStartup(sockVersion, &data) != 0)
+    {
+        return 0;
+    }
+
+    SOCKET sclient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if(sclient == INVALID_SOCKET)
+    {
+        printf("invalid socket !\n");
+        return 0;
+    }
+
+    sockaddr_in serAddr;
+    serAddr.sin_family = AF_INET;
+    serAddr.sin_port = htons(8888);
+    serAddr.sin_addr.S_un.S_addr = inet_addr("192.168.5.101"); 
+    if (connect(sclient, (sockaddr *)&serAddr, sizeof(serAddr)) == SOCKET_ERROR)
+    {
+        printf("connect error !");
+        closesocket(sclient);
+        return 0;
+    }
+*/
+	//**************************************
+	//载入配置文件变量指针等参数
+	//	InitLoad();
+	//掉线重新载入内存判断标志
+	int	flag = 0;
+	Hwnd = ::FindWindow("AfxFrameOrView70u", NULL);
+	
+	if (Hwnd == NULL)
+	{
+		cout<<"没找到游戏窗口句柄!"<<endl;
+		flag = 0;
+	}
+	else
+	{
+		cout<<"找到游戏窗口句柄了!"<<endl;
+		flag = 1;
+	}
+	
+	DWORD pid = 0;
+	GetWindowThreadProcessId(Hwnd, &pid);  //获取进程id
+	hd = OpenProcess(PROCESS_ALL_ACCESS, NULL, pid);//打开进程 获取所有操作权限	
+	//读取总基址
+	ReadProcessMemory(hd, LPCVOID(0x00415398), &PointALL, sizeof(DWORD), NULL);
+
+	while (true)
+	{
+		Hwnd = ::FindWindow("AfxFrameOrView70u", NULL);
+		
+		if (Hwnd == NULL)
+		{
+			cout<<"没找到游戏窗口句柄，森林舞会游戏崩溃啦!"<<endl;
+			flag = 0;
+		}
+		else
+		{
+			if (flag == 0)
+			{
+				cout<<"找到游戏窗口句柄了!"<<endl;
+				GetWindowThreadProcessId(Hwnd, &pid);  //获取进程id
+				hd = OpenProcess(PROCESS_ALL_ACCESS, NULL, pid);//打开进程 获取所有操作权限	
+				//读取总基址
+				ReadProcessMemory(hd, LPCVOID(0x00415398), &PointALL, sizeof(DWORD), NULL);
+				cout<<"掉线重连成功!"<<endl;
+			}
+			
+			flag = 1;
+		}
+		
+		DWORD TimeStart = 0;
+		DWORD timeEnd   = 0;
+		
+		ReadProcessMemory(hd, LPCVOID(PointALL + P_RemainTime), &TimeStart, sizeof(DWORD), NULL);
+		Sleep(2000);
+		//相隔2秒后读取一次时间
+		ReadProcessMemory(hd, LPCVOID(PointALL + P_RemainTime), &timeEnd, sizeof(DWORD), NULL);
+		
+		//2秒前时间不为0，而2秒后为0了则说明下注结束，开始抽取动物了
+		if (TimeStart != 0 && timeEnd == 0)
+		{	
+			cout<<"倒计时时间 = "<<timeEnd<<endl;
+			cout<<"停止押注,开始抽取动物!  "<<endl;
+			ReadAnimal();
+			TotalCount = CountAnimal();
+			cout<<"所有动物压分总和 = "<<TotalCount<<endl;
+			char Res[50] = "";
+			sprintf(Res, "%s %ld\n", "压分总和 = ", TotalCount); 
+			//向服务器端发送数据
+	//		send(sclient, Res, strlen(Res), 0);
+			//写入C:\SLWH.ini，当前一局的动物倍率信息以及总押注分数。
+			Wirteini();
+
+	
+		}
+		else
+		{
+			cout<<"倒计时时间 = "<<timeEnd<<endl;
+		}
+	}
+	
+	return 0;
+}
+
+//倒计时为0后, 开始计算所有动物当前一局压分总和
+DWORD CountAnimal()
+{
+	DWORD All = RabitUp + RabitMid + RabitDown + 
+		MonkeyUp + MonkeyMid + MonkeyDown + 
+		PandaUp + PandaMid + PandaDown + 
+		lionUp + lionMid + lionDown;
+	
+	return All;
+}
+
+//读取每一个动物总压分和对应的倍率
+void ReadAnimal()
+{
+	DWORD begin=0, end=0, cost;  
+	begin = GetTickCount();
+	//读取每个动物各自的总压分
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_RabitUp), &RabitUp, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_RabitMid), &RabitMid, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_RabitDown), &RabitDown, sizeof(DWORD), NULL);
+	
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_MonkeyUp), &MonkeyUp, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_MonkeyMid), &MonkeyMid, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_MonkeyDown), &MonkeyDown, sizeof(DWORD), NULL);
+	
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_PandaUp), &PandaUp, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_PandaMid), &PandaMid, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_PandaDown), &PandaDown, sizeof(DWORD), NULL);
+	
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_lionUp), &lionUp, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_lionMid), &lionMid, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_lionDown), &lionDown, sizeof(DWORD), NULL);
+	
+	//读取每个动物对应的倍率
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_RabitUpLv), &RabitUpLv, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_RabitMidLv), &RabitMidLv, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_RabitDownLv), &RabitDownLv, sizeof(DWORD), NULL);
+	
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_MonkeyUpLv), &MonkeyUpLv, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_MonkeyMidLv), &MonkeyMidLv, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_MonkeyDownLv), &MonkeyDownLv, sizeof(DWORD), NULL);
+	
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_PandaUpLv), &PandaUpLv, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_PandaMidLv), &PandaMidLv, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_PandaDownLv), &PandaDownLv, sizeof(DWORD), NULL);
+	
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_lionUpLv), &lionUpLv, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_lionMidLv), &lionMidLv, sizeof(DWORD), NULL);
+	ReadProcessMemory(hd, LPCVOID(PointALL + P_lionDownLv), &lionDownLv, sizeof(DWORD), NULL);
+	
+	end = GetTickCount();
+	cost = (DWORD)(end - begin);//计算以毫秒为单位
+	//	cout<<"此程序的运行时间为"<<cost<<"毫秒"<<endl;
+}
+
+//统计结果写入SLWH.ini文件里
+void Wirteini()
+{
+	//写入押注总和分数
+	char WriteWord[100] = "";
+	sprintf(WriteWord, "%ld", TotalCount); 
+	WritePrivateProfileString("森林舞会", "总押注", WriteWord, "c:\\SLWH.ini");
+
+	//************************************写入倍率*************************************
+	//写入兔子的倍率
+	//写入红色兔子倍率
+	sprintf(WriteWord, "%ld", RabitUpLv); 
+	WritePrivateProfileString("森林舞会", "红色兔子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色兔子倍率
+	sprintf(WriteWord, "%ld", RabitMidLv); 
+	WritePrivateProfileString("森林舞会", "绿色兔子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色兔子倍率
+	sprintf(WriteWord, "%ld", RabitDownLv); 
+	WritePrivateProfileString("森林舞会", "黄色兔子", WriteWord, "c:\\SLWH.ini");
+
+	//写入猴子的倍率
+	//写入红色猴子倍率
+	sprintf(WriteWord, "%ld", MonkeyUpLv); 
+	WritePrivateProfileString("森林舞会", "红色猴子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色猴子倍率
+	sprintf(WriteWord, "%ld", MonkeyMidLv); 
+	WritePrivateProfileString("森林舞会", "绿色猴子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色猴子倍率
+	sprintf(WriteWord, "%ld", MonkeyDownLv); 
+	WritePrivateProfileString("森林舞会", "黄色猴子", WriteWord, "c:\\SLWH.ini");	
+
+	//写入熊猫的倍率
+	//写入红色熊猫倍率
+	sprintf(WriteWord, "%ld", PandaUpLv); 
+	WritePrivateProfileString("森林舞会", "红色熊猫", WriteWord, "c:\\SLWH.ini");
+	//写入绿色熊猫倍率
+	sprintf(WriteWord, "%ld", PandaMidLv); 
+	WritePrivateProfileString("森林舞会", "绿色熊猫", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色熊猫倍率
+	sprintf(WriteWord, "%ld", PandaDownLv); 
+	WritePrivateProfileString("森林舞会", "黄色熊猫", WriteWord, "c:\\SLWH.ini");	
+
+	//写入狮子的倍率
+	//写入红色狮子倍率
+	sprintf(WriteWord, "%ld", lionUpLv); 
+	WritePrivateProfileString("森林舞会", "红色狮子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色狮子倍率
+	sprintf(WriteWord, "%ld", lionMidLv); 
+	WritePrivateProfileString("森林舞会", "绿色狮子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色狮子倍率
+	sprintf(WriteWord, "%ld", lionDownLv); 
+	WritePrivateProfileString("森林舞会", "黄色狮子", WriteWord, "c:\\SLWH.ini");	
+	//*********************************************************************************
+
+	//***************************写入12个动物各自总压分分数****************************
+	//写入兔子的分数
+	//写入红色兔子分数
+	sprintf(WriteWord, "%ld", RabitUp); 
+	WritePrivateProfileString("动物分数", "红色兔子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色兔子分数
+	sprintf(WriteWord, "%ld", RabitMid); 
+	WritePrivateProfileString("动物分数", "绿色兔子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色兔子分数
+	sprintf(WriteWord, "%ld", RabitDown); 
+	WritePrivateProfileString("动物分数", "黄色兔子", WriteWord, "c:\\SLWH.ini");
+
+	//写入猴子的分数
+	//写入红色猴子分数
+	sprintf(WriteWord, "%ld", MonkeyUp); 
+	WritePrivateProfileString("动物分数", "红色猴子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色猴子分数
+	sprintf(WriteWord, "%ld", MonkeyMid); 
+	WritePrivateProfileString("动物分数", "绿色猴子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色猴子分数
+	sprintf(WriteWord, "%ld", MonkeyDown); 
+	WritePrivateProfileString("动物分数", "黄色猴子", WriteWord, "c:\\SLWH.ini");	
+
+	//写入熊猫的分数
+	//写入红色熊猫分数
+	sprintf(WriteWord, "%ld", PandaUp); 
+	WritePrivateProfileString("动物分数", "红色熊猫", WriteWord, "c:\\SLWH.ini");
+	//写入绿色熊猫分数
+	sprintf(WriteWord, "%ld", PandaMid); 
+	WritePrivateProfileString("动物分数", "绿色熊猫", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色熊猫分数
+	sprintf(WriteWord, "%ld", PandaDown); 
+	WritePrivateProfileString("动物分数", "黄色熊猫", WriteWord, "c:\\SLWH.ini");	
+
+	//写入狮子的分数
+	//写入红色狮子分数
+	sprintf(WriteWord, "%ld", lionUp); 
+	WritePrivateProfileString("动物分数", "红色狮子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色狮子分数
+	sprintf(WriteWord, "%ld", lionMid); 
+	WritePrivateProfileString("动物分数", "绿色狮子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色狮子分数
+	sprintf(WriteWord, "%ld", lionDown); 
+	WritePrivateProfileString("动物分数", "黄色狮子", WriteWord, "c:\\SLWH.ini");
+	//*********************************************************************************
+
+
+	//写入最终ini完成标志
+	WritePrivateProfileString("森林舞会", "动物读取内存数据完成标志", "1", "c:\\SLWH.ini");	
+
+}
+
+/*
+//载入配置文件变量指针等参数
+void InitLoad()
+{
+char buffer[MAX_PATH];   
+getcwd(buffer, MAX_PATH);   
+printf("当前程序目录为: %s\n", buffer); 
+strcat(buffer, "\\SLWH.ini");
+cout<<"完整路径为:"<<buffer<<endl;
+
+  GetPrivateProfileString("森林舞会", "RabitUp", "Loaderro!", RabitUp, sizeof(RabitUp), buffer);
+  GetPrivateProfileString("森林舞会", "RabitUpLv", "Loaderro!", RabitUpLv, sizeof(RabitUpLv), buffer);
+  //	RabitUpLv = GetPrivateProfileInt("森林舞会", "RabitUpLv", -1, buffer);
+  
+	cout<<"读取成功, RabitUp="<<RabitUp<<"   RabitUpLv="<<RabitUpLv<<endl;
+	
+	  
+		}
+*/
