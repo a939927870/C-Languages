@@ -2,8 +2,7 @@
 //
 //99电玩森林舞会游戏必须用这个账号才能测试得到，别的账号测试不出来，不知道什么原因
 //账号：hhhhkkkk1144
-//密码：89217a
-//森林的新手房也可以运行有效果
+//密码：11111111
 #include "stdafx.h"
 #include <windows.h>
 #include <process.h>
@@ -105,36 +104,10 @@ void ReadAnimal();
 DWORD CountAnimal();
 //统计结果写入SLWH.ini文件里
 void Wirteini();
+void PrintOut();
 
 int main(int argc, char* argv[])
 {
-	//**********连接服务端部分**********
-/*
-    WORD sockVersion = MAKEWORD(2,2);
-    WSADATA data; 
-    if(WSAStartup(sockVersion, &data) != 0)
-    {
-        return 0;
-    }
-
-    SOCKET sclient = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if(sclient == INVALID_SOCKET)
-    {
-        printf("invalid socket !\n");
-        return 0;
-    }
-
-    sockaddr_in serAddr;
-    serAddr.sin_family = AF_INET;
-    serAddr.sin_port = htons(8888);
-    serAddr.sin_addr.S_un.S_addr = inet_addr("192.168.5.101"); 
-    if (connect(sclient, (sockaddr *)&serAddr, sizeof(serAddr)) == SOCKET_ERROR)
-    {
-        printf("connect error !");
-        closesocket(sclient);
-        return 0;
-    }
-*/
 	//**************************************
 	//载入配置文件变量指针等参数
 	//	InitLoad();
@@ -158,9 +131,9 @@ int main(int argc, char* argv[])
 	hd = OpenProcess(PROCESS_ALL_ACCESS, NULL, pid);//打开进程 获取所有操作权限	
 	//读取总基址
 	ReadProcessMemory(hd, LPCVOID(0x00415398), &PointALL, sizeof(DWORD), NULL);
-
+	
 	while (true)
-	{
+	{/*	*/
 		Hwnd = ::FindWindow("AfxFrameOrView70u", NULL);
 		
 		if (Hwnd == NULL)
@@ -182,7 +155,7 @@ int main(int argc, char* argv[])
 			
 			flag = 1;
 		}
-		
+	
 		DWORD TimeStart = 0;
 		DWORD timeEnd   = 0;
 		
@@ -190,7 +163,13 @@ int main(int argc, char* argv[])
 		Sleep(2000);
 		//相隔2秒后读取一次时间
 		ReadProcessMemory(hd, LPCVOID(PointALL + P_RemainTime), &timeEnd, sizeof(DWORD), NULL);
-		
+		/**/
+
+		if (timeEnd == 10 || timeEnd == 9)
+		{
+			PrintOut();
+		}
+
 		//2秒前时间不为0，而2秒后为0了则说明下注结束，开始抽取动物了
 		if (TimeStart != 0 && timeEnd == 0)
 		{	
@@ -202,15 +181,17 @@ int main(int argc, char* argv[])
 			char Res[50] = "";
 			sprintf(Res, "%s %ld\n", "压分总和 = ", TotalCount); 
 			//向服务器端发送数据
-	//		send(sclient, Res, strlen(Res), 0);
+			//		send(sclient, Res, strlen(Res), 0);
 			//写入C:\SLWH.ini，当前一局的动物倍率信息以及总押注分数。
 			Wirteini();
-
-	
+			
 		}
 		else
 		{
-			cout<<"倒计时时间 = "<<timeEnd<<endl;
+			if (timeEnd != 0)
+			{
+				cout<<"倒计时时间 = "<<timeEnd<<endl;			
+			}
 		}
 	}
 	
@@ -279,7 +260,7 @@ void Wirteini()
 	char WriteWord[100] = "";
 	sprintf(WriteWord, "%ld", TotalCount); 
 	WritePrivateProfileString("森林舞会", "总押注", WriteWord, "c:\\SLWH.ini");
-
+	
 	//************************************写入倍率*************************************
 	//写入兔子的倍率
 	//写入红色兔子倍率
@@ -291,7 +272,7 @@ void Wirteini()
 	//写入黄色兔子倍率
 	sprintf(WriteWord, "%ld", RabitDownLv); 
 	WritePrivateProfileString("森林舞会", "黄色兔子", WriteWord, "c:\\SLWH.ini");
-
+	
 	//写入猴子的倍率
 	//写入红色猴子倍率
 	sprintf(WriteWord, "%ld", MonkeyUpLv); 
@@ -302,7 +283,7 @@ void Wirteini()
 	//写入黄色猴子倍率
 	sprintf(WriteWord, "%ld", MonkeyDownLv); 
 	WritePrivateProfileString("森林舞会", "黄色猴子", WriteWord, "c:\\SLWH.ini");	
-
+	
 	//写入熊猫的倍率
 	//写入红色熊猫倍率
 	sprintf(WriteWord, "%ld", PandaUpLv); 
@@ -313,7 +294,7 @@ void Wirteini()
 	//写入黄色熊猫倍率
 	sprintf(WriteWord, "%ld", PandaDownLv); 
 	WritePrivateProfileString("森林舞会", "黄色熊猫", WriteWord, "c:\\SLWH.ini");	
-
+	
 	//写入狮子的倍率
 	//写入红色狮子倍率
 	sprintf(WriteWord, "%ld", lionUpLv); 
@@ -325,7 +306,7 @@ void Wirteini()
 	sprintf(WriteWord, "%ld", lionDownLv); 
 	WritePrivateProfileString("森林舞会", "黄色狮子", WriteWord, "c:\\SLWH.ini");	
 	//*********************************************************************************
-
+	
 	//***************************写入12个动物各自总压分分数****************************
 	//写入兔子的分数
 	//写入红色兔子分数
@@ -337,7 +318,7 @@ void Wirteini()
 	//写入黄色兔子分数
 	sprintf(WriteWord, "%ld", RabitDown); 
 	WritePrivateProfileString("动物分数", "黄色兔子", WriteWord, "c:\\SLWH.ini");
-
+	
 	//写入猴子的分数
 	//写入红色猴子分数
 	sprintf(WriteWord, "%ld", MonkeyUp); 
@@ -348,7 +329,7 @@ void Wirteini()
 	//写入黄色猴子分数
 	sprintf(WriteWord, "%ld", MonkeyDown); 
 	WritePrivateProfileString("动物分数", "黄色猴子", WriteWord, "c:\\SLWH.ini");	
-
+	
 	//写入熊猫的分数
 	//写入红色熊猫分数
 	sprintf(WriteWord, "%ld", PandaUp); 
@@ -359,7 +340,7 @@ void Wirteini()
 	//写入黄色熊猫分数
 	sprintf(WriteWord, "%ld", PandaDown); 
 	WritePrivateProfileString("动物分数", "黄色熊猫", WriteWord, "c:\\SLWH.ini");	
-
+	
 	//写入狮子的分数
 	//写入红色狮子分数
 	sprintf(WriteWord, "%ld", lionUp); 
@@ -371,29 +352,170 @@ void Wirteini()
 	sprintf(WriteWord, "%ld", lionDown); 
 	WritePrivateProfileString("动物分数", "黄色狮子", WriteWord, "c:\\SLWH.ini");
 	//*********************************************************************************
+	
+	//***************************写入12个动物应出的分数****************************
+	//写入兔子的分数
+	//写入红色兔子分数
+	sprintf(WriteWord, "%ld", RabitUp*RabitUpLv); 
+	WritePrivateProfileString("应出分数", "红色兔子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色兔子分数
+	sprintf(WriteWord, "%ld", RabitMid*RabitMidLv); 
+	WritePrivateProfileString("应出分数", "绿色兔子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色兔子分数
+	sprintf(WriteWord, "%ld", RabitDown*RabitDownLv); 
+	WritePrivateProfileString("应出分数", "黄色兔子", WriteWord, "c:\\SLWH.ini");
+	
+	//写入猴子的分数
+	//写入红色猴子分数
+	sprintf(WriteWord, "%ld", MonkeyUp*MonkeyUpLv); 
+	WritePrivateProfileString("应出分数", "红色猴子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色猴子分数
+	sprintf(WriteWord, "%ld", MonkeyMid*MonkeyMidLv); 
+	WritePrivateProfileString("应出分数", "绿色猴子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色猴子分数
+	sprintf(WriteWord, "%ld", MonkeyDown*MonkeyDownLv); 
+	WritePrivateProfileString("应出分数", "黄色猴子", WriteWord, "c:\\SLWH.ini");	
+	
+	//写入熊猫的分数
+	//写入红色熊猫分数
+	sprintf(WriteWord, "%ld", PandaUp*PandaUpLv); 
+	WritePrivateProfileString("应出分数", "红色熊猫", WriteWord, "c:\\SLWH.ini");
+	//写入绿色熊猫分数
+	sprintf(WriteWord, "%ld", PandaMid*PandaMidLv); 
+	WritePrivateProfileString("应出分数", "绿色熊猫", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色熊猫分数
+	sprintf(WriteWord, "%ld", PandaDown*PandaDownLv); 
+	WritePrivateProfileString("应出分数", "黄色熊猫", WriteWord, "c:\\SLWH.ini");	
+	
+	//写入狮子的分数
+	//写入红色狮子分数
+	sprintf(WriteWord, "%ld", lionUp*lionUpLv); 
+	WritePrivateProfileString("应出分数", "红色狮子", WriteWord, "c:\\SLWH.ini");
+	//写入绿色狮子分数
+	sprintf(WriteWord, "%ld", lionMid*lionMidLv); 
+	WritePrivateProfileString("应出分数", "绿色狮子", WriteWord, "c:\\SLWH.ini");	
+	//写入黄色狮子分数
+	sprintf(WriteWord, "%ld", lionDown*lionDownLv); 
+	WritePrivateProfileString("应出分数", "黄色狮子", WriteWord, "c:\\SLWH.ini");
+	//*********************************************************************************
 
-
+	//*********************************************************************************
 	//写入最终ini完成标志
 	WritePrivateProfileString("森林舞会", "动物读取内存数据完成标志", "1", "c:\\SLWH.ini");	
-
 }
 
-/*
-//载入配置文件变量指针等参数
-void InitLoad()
-{
-char buffer[MAX_PATH];   
-getcwd(buffer, MAX_PATH);   
-printf("当前程序目录为: %s\n", buffer); 
-strcat(buffer, "\\SLWH.ini");
-cout<<"完整路径为:"<<buffer<<endl;
-
-  GetPrivateProfileString("森林舞会", "RabitUp", "Loaderro!", RabitUp, sizeof(RabitUp), buffer);
-  GetPrivateProfileString("森林舞会", "RabitUpLv", "Loaderro!", RabitUpLv, sizeof(RabitUpLv), buffer);
-  //	RabitUpLv = GetPrivateProfileInt("森林舞会", "RabitUpLv", -1, buffer);
-  
-	cout<<"读取成功, RabitUp="<<RabitUp<<"   RabitUpLv="<<RabitUpLv<<endl;
+//输出下注结果提示信息
+void PrintOut()
+{//狮子
+	cout<<"----------狮子------------"<<endl;
+	if (lionUp*lionUpLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
 	
-	  
-		}
-*/
+	if (lionMid*lionMidLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+
+	if (lionDown*lionDownLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+//熊猫
+	cout<<"----------熊猫------------"<<endl;
+	if (PandaUp*PandaUpLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+	
+	if (PandaMid*PandaMidLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+
+	if (PandaDown*PandaDownLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+//猴子
+	cout<<"----------猴子------------"<<endl;
+	if (MonkeyUp*MonkeyUpLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+	
+	if (MonkeyMid*MonkeyMidLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+
+	if (MonkeyDown*MonkeyDownLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+//兔子
+	cout<<"----------兔子------------"<<endl;
+	if (RabitUp*RabitUpLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+	
+	if (RabitMid*RabitMidLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+
+	if (RabitDown*RabitDownLv <= TotalCount)
+	{
+		cout<<"√"<<endl;
+	}
+	else
+	{
+		cout<<"×"<<endl;
+	}
+}
