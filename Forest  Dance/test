@@ -167,6 +167,7 @@ int main(int argc, char* argv[])
 
 		if (timeEnd == 10 || timeEnd == 9)
 		{
+			ReadAnimal();
 			PrintOut();
 		}
 
