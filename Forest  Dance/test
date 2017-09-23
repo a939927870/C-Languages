@@ -168,6 +168,7 @@ int main(int argc, char* argv[])
 		if (timeEnd == 10 || timeEnd == 9)
 		{
 			ReadAnimal();
+			TotalCount = CountAnimal();//这里TotalCount也要统计，不然分数是上一局的，对比不正确
 			PrintOut();
 		}
 
