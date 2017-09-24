@@ -309,12 +309,12 @@ void IO_WriteInfo()
 }  
 
 /*主程序*/  
-void main()  
+int main(void)  
 {  
 	int choice;  
 	IO_ReadInfo();  
 	
-	while(1)  
+	while(true)  
 	{  
 		/*主菜单*/  
 		printf("\n------ 学生成绩管理系统------\n");  
@@ -353,4 +353,6 @@ void main()
 		
 		IO_WriteInfo();  
 	}  
+	
+	return 0;
 }  
