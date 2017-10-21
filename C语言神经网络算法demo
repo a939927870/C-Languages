@@ -11,8 +11,14 @@
 #define OUT_COUT 2     //输出向量维数
 #define IN_COUT 3     //输入向量维数
 #define COUT     6     //样本数量
+int HideNet = 9;	//影层节点数
+double XiaoLv = 0.9;	//学习率
+double JingDu = 0.9;	//精度控制参数
+int MaxLoop = 100000;	//最大循环次数
 
-typedef struct {       //bp人工神经网络结构
+//bp人工神经网络结构
+typedef struct 
+{       
     int h;             //实际使用隐层数量
     double v[IN_COUT][50];   //隐藏层权矩阵i,隐层节点最大数量为50
     double w[50][OUT_COUT];   //输出层权矩阵
@@ -21,24 +27,26 @@ typedef struct {       //bp人工神经网络结构
     int LoopCout;      //最大循环次数
 } bp_nn;
 
-double fnet(double net) { //Sigmoid函数,神经网络激活函数
-    return 1/(1+exp(-net));
+//Sigmoid函数,神经网络激活函数
+double fnet(double net) 
+{	
+    return 1 / (1 + exp(-net));
 }
 
-int InitBp(bp_nn *bp) { //初始化bp网络
-    
+int InitBp(bp_nn *bp) 
+{ //初始化bp网络    
     printf("请输入隐层节点数，最大数为100：\n");    
-    scanf("%d", &(*bp).h);
-    
+ //   scanf("%d", &(*bp).h);
+	(*bp).h = HideNet;
     printf("请输入学习率：\n");
-    scanf("%lf", &(*bp).a);    //(*bp).a为double型数据，所以必须是lf
-	
+  //  scanf("%lf", &(*bp).a);    //(*bp).a为double型数据，所以必须是lf
+	(*bp).a = XiaoLv;
     printf("请输入精度控制参数：\n");
-    scanf("%lf", &(*bp).b);
-	
+ //  scanf("%lf", &(*bp).b);
+	(*bp).b = JingDu;
     printf("请输入最大循环次数：\n");
-    scanf("%d", &(*bp).LoopCout);
-	
+  //  scanf("%d", &(*bp).LoopCout);
+	(*bp).LoopCout = MaxLoop;
     int i, j;
     srand((unsigned)time(NULL));
     for (i = 0; i < IN_COUT; i++) 
