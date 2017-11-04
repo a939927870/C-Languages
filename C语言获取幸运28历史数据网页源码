@@ -1,0 +1,51 @@
+// dd.cpp : Defines the entry point for the console application.
+//
+//获取的数据是 http://www.pceggs28.cc/index.php?g=mobile&m=historicalresults&a=index&id=7&cid=7&p=1
+//这个28统计网站的页面源代码 ，编译器 VC6.0  模式：控制台窗口
+#include "stdafx.h"
+
+#define MAXBLOCKSIZE 1024
+#include <windows.h>
+#include <wininet.h>
+
+#pragma comment(lib, "wininet.lib")
+
+void GetWebSrcCode(const char *Url);
+
+int main(void)
+{
+    GetWebSrcCode("http://www.pceggs28.cc/index.php?g=mobile&m=historicalresults&a=index&id=7&cid=7&p=1");
+
+    return 0;
+}
+
+void GetWebSrcCode(const char *Url)
+{
+    HINTERNET hSession = InternetOpen("zwt", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+    if (hSession != NULL)
+    {
+        HINTERNET hURL = InternetOpenUrl(hSession, Url, NULL, 0, INTERNET_FLAG_DONT_CACHE, 0);
+        if (hURL != NULL)
+        {
+            char Temp[MAXBLOCKSIZE] = {0};
+            ULONG Number = 1;
+
+            FILE *stream;
+            if( (stream = fopen( "C:\\ee.txt", "wb" )) != NULL )
+            {
+                while (Number > 0)
+                {
+                    InternetReadFile(hURL, Temp, MAXBLOCKSIZE - 1, &Number);
+                    fwrite(Temp, sizeof (char), Number , stream);
+                }
+                fclose( stream );
+            }
+
+            InternetCloseHandle(hURL);
+            hURL = NULL;
+        }
+
+        InternetCloseHandle(hSession);
+        hSession = NULL;
+    }
+}
