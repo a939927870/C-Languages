@@ -1,0 +1,55 @@
+// dd.cpp : Defines the entry point for the console application.
+//
+/**
+读取C盘文件 a.txt：
+axsdA1.23, 11A5.45e02, XSSA-7.88, 
+999A987, iikA0, llllLA3.333333
+取出A后面的double型数据并求和。
+ */
+
+#include "stdafx.h"
+#include <stdio.h>
+
+int main(int argc, char* argv[])
+{
+	FILE *fin;
+	double x[50], sum=0.0; 
+	int i,n=0;
+	fin = fopen("C:\\a.txt","r");
+	
+	while(1)
+	{
+		if ( fscanf(fin,"%*[^A]A%lf",&x[n]) != 1) 
+		{
+			break;    // 窍门在此
+		}
+		
+		n++;
+		
+		if (n>=50) 
+		{
+			break;
+		}
+	}
+	
+	for (i=0;i<n;i++) 
+	{
+		printf("%lf\n",x[i]);
+		sum=sum+x[i];
+	}
+	
+	printf("sum=%lf\n",sum);
+	
+	return 0;
+}
+
+/*
+输出：
+1.230000
+545.000000
+-7.880000
+987.000000
+0.000000
+3.333333
+sum=1528.683333
+*/
