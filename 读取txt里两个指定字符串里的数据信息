@@ -1,47 +1,44 @@
-/*比如一个txt文本里：
-ff44ad@>=45654<=h5t5#f 
-我要读取>=和<=里的数字45654信息
-*/
 // dd.cpp : Defines the entry point for the console application.
 //
-/**
-读取C盘文件文a.txt：
-axsdA1.23, 11A5.45e02, XSSA-7.88, 
-999A987, iikA0, llllLA3.333333
-取出A后面的double型数据并求和。
- */
+//从幸运28历史页面提取数据，http://www.pceggs28.cc/index.php?g=mobile&m=historicalresults&a=index&id=7&cid=7&p=1
 
 #include "stdafx.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#define MAXLINE 100000
-#define BUFLEN  1024
+#include <stdlib.h>
 
-int main(void)
+char str1[] = "<li class=\"number\">";  //文本里需要查找的字符串
+
+int main(int argc, char* argv[])
 {
-	FILE *file;
-	char buf[BUFLEN];
-	int len=0,i=0;
-	char *array[MAXLINE];
+    FILE *fp = NULL;
+    float v = 0;
+    char buf[1000];
+    char *p = NULL;
 	
-	file=fopen("C:\\b.txt","r");//打开TXST.TxT文件
-	if(!file)return -1;
-	while(fgets(buf,BUFLEN,file))//读取TXT中字符
+    fp = fopen("C:\\in.txt", "r");
+    
+	if(fp == NULL) 
 	{
-		len=strlen(buf);
-		array[i]=(char*)malloc(len+1);
-		if(!array[i])break;
-		strcpy(array[i++],buf);
-	}
-	
-	fclose(file);
-	i--;
-	while(i>=0&&array[i])
-	{
-		printf("%s\n",array[i]);//打印test文档的字符
-		free(array[i--]);
+		printf("文件打开失败\n");
+		return -1;
 	}
 
-	return 0;
+    while(fgets(buf, sizeof(buf), fp) != NULL)
+    {
+        p = strstr(buf, str1);
+        
+		if(p == NULL)
+		{
+			continue;
+        }
+		
+		p = p + strlen(str1);
+        sscanf(p, "%f", &v);
+        printf("get v = %f\n", v);
+    }
+	
+    fclose(fp);
+	
+    return 0;
 }
