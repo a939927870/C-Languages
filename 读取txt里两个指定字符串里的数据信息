@@ -35,7 +35,7 @@ int main(int argc, char* argv[])
 		
 		p = p + strlen(str1);
         sscanf(p, "%f", &v);
-        printf("get v = %f\n", v);
+        printf("get v = %0.f\n", v);
     }
 	
     fclose(fp);
