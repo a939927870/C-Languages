@@ -1,6 +1,11 @@
 // dd.cpp : Defines the entry point for the console application.
 //
 //从幸运28历史页面提取数据，http://www.pceggs28.cc/index.php?g=mobile&m=historicalresults&a=index&id=7&cid=7&p=1
+/*相关资料：
+在c语言中怎样用fseek与freed实现txt文档中每行字符串cnr后面的数据 例如 ss,_百度知道
+https://zhidao.baidu.com/question/1768466676587469580.html
+*/
+
 
 #include "stdafx.h"
 #include <stdio.h>
