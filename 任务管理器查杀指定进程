@@ -1,0 +1,92 @@
+#include "Psapi.h"
+#pragma comment(lib,"psapi.lib")
+******
+void CDdDlg::OnButton1() 
+{
+	// TODO: Add your control notification handler code here
+	PROCESSENTRY32 pe32;  
+	pe32.dwSize=sizeof(pe32);  
+	HANDLE hProcessSnap=::CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS,0);  
+	
+	if(hProcessSnap==INVALID_HANDLE_VALUE)  
+	{  
+		//		MessageBox(L"CreateToolhelp32Snapshot调用失败!\n");  
+		//	
+		//		return -1;  
+	}  
+	//遍历进程快照。轮流显示每个进程的信息  
+	CString strPrcNameID;  
+	BOOL bMore=::Process32First(hProcessSnap,&pe32);  
+	int i = 0;
+	while(bMore)  
+	{  
+		strPrcNameID.Format("进程名称：%s，ID：%u  num = %d \n",pe32.szExeFile,pe32.th32ProcessID, i);  
+		AfxMessageBox(strPrcNameID);
+		bMore = ::Process32Next(hProcessSnap,&pe32);  	
+		i++;
+	}  
+
+	//清除snapshot对象  
+	
+	::CloseHandle(hProcessSnap);  
+}
+
+//查找指定进程  
+DWORD FindProcess(TCHAR *strProcessName)  
+{  
+    DWORD aProcesses[1024], cbNeeded, cbMNeeded;  
+    HMODULE hMods[1024];  
+    HANDLE hProcess;  
+    TCHAR szProcessName[MAX_PATH];  
+  
+    if ( !EnumProcesses( aProcesses, sizeof(aProcesses), &cbNeeded ) )  return 0;  
+    for(int i=0; i< (int) (cbNeeded / sizeof(DWORD)); i++)  
+    {  
+        hProcess = OpenProcess(  PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, aProcesses[i]);  
+        EnumProcessModules(hProcess, hMods, sizeof(hMods), &cbMNeeded);  
+        GetModuleFileNameEx( hProcess, hMods[0], szProcessName,sizeof(szProcessName));  
+         
+        CString strPrcFullName(szProcessName);  
+        CString strPrcName(strProcessName);  
+        if(_tcsstr(strPrcFullName, strPrcName)/* || _tcsstr(strPrcFullName, (LPTSTR)strPrcName.MakeLower())*/)  
+        {  
+            CString strNameFull;  
+            strNameFull.Format(_T("Process full name：\n%s;"), szProcessName);  
+            //AfxMessageBox(strNameFull);  
+            return(aProcesses[i]);  
+        }  
+    }  
+  
+    return 0;  
+}  
+
+// 此函数利用上面的 FindProcess 函数获得你的目标进程的ID  
+// 用WIN API OpenPorcess 获得此进程的句柄，再以TerminateProcess强制结束这个进程  
+VOID KillProcess(TCHAR *strProcessName)  
+{  
+    // When the all operation fail this function terminate the "winlogon" Process for force exit the system.  
+    HANDLE hYourTargetProcess = OpenProcess(PROCESS_QUERY_INFORMATION |   // Required by Alpha  
+         PROCESS_CREATE_THREAD     |   // For CreateRemoteThread  
+         PROCESS_VM_OPERATION      |   // For VirtualAllocEx/VirtualFreeEx  
+         PROCESS_VM_WRITE          |  // For WriteProcessMemory  
+         PROCESS_TERMINATE,           //Required to terminate a process using TerminateProcess function  
+         FALSE, FindProcess(strProcessName));  
+  
+    if(hYourTargetProcess == NULL)  
+    {  
+       DWORD ulErrCode = GetLastError();  
+       CString strError;  
+       strError.Format("OpenProcess failed,error code:%ld", ulErrCode);  
+       AfxMessageBox(strError);  
+    }  
+  
+    BOOL result = TerminateProcess(hYourTargetProcess, 0);  
+    if(!result)  
+    {  
+        DWORD ulErrCode = GetLastError();  
+        CString strError;  
+        strError.Format("TerminateProcess failed,error code:%ld", ulErrCode);  
+        AfxMessageBox(strError);  
+    }  
+    return;  
+}
