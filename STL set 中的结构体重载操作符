@@ -1,0 +1,60 @@
+typedef int Lint;
+typedef string Lstring;
+
+struct SMiniGameUserInfo
+{
+	Lint		UserId = 0;		//玩家id
+	Lint		Score = 0;		//积分
+
+	bool operator<(const SMiniGameUserInfo &_b) const
+	{
+		if (Score < _b.Score) return true;
+		if (Score > _b.Score) return false;
+		return (UserId < _b.UserId);
+	}
+
+	bool operator>(const SMiniGameUserInfo &_b)const
+	{
+		if (Score > _b.Score) return true;
+		if (Score < _b.Score) return false;
+		return (UserId > _b.UserId);
+	}
+
+};
+
+int main(void)
+{
+	set<SMiniGameUserInfo> test;
+	
+	int sec = 0;
+
+	for (size_t i = 0; i < 99; i++)
+	{
+		SMiniGameUserInfo stu;
+		int num = rand() % 100;
+
+		stu.Score = num ;
+		stu.UserId = i;
+
+		test.insert(stu);
+		sec++;
+	}
+
+	cout <<"sec = "<<sec << endl;
+
+	
+	SMiniGameUserInfo stu1;
+	stu1.Score = 50;
+	stu1.UserId = 1000;
+	test.insert(stu1);
+
+	auto iter = test.find(stu1);
+	test.erase(iter);
+	SMiniGameUserInfo stu;
+	stu.Score = 60;
+	stu.UserId = 1000;
+
+	test.insert(stu);
+
+	return 0;
+}
