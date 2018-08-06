@@ -1,0 +1,73 @@
+
+#include <iostream>
+ 
+class FactoryAbstract
+{
+public: 
+	virtual void create() = 0;
+    virtual void destroy() = 0;
+};
+ 
+ 
+class FactoryRealA:public FactoryAbstract
+{
+public: 
+	virtual void create()
+	{
+		std::cout<<"create  A"<<std::endl;
+	}
+	
+    virtual void destroy()
+	{
+		std::cout<<"destroy  A"<<std::endl;
+	}
+};
+ 
+class FactoryRealB:public FactoryAbstract
+{
+public: 
+	virtual void create()
+	{
+		std::cout<<"create  B"<<std::endl;
+	}
+	
+    virtual void destroy()
+	{
+		std::cout<<"destroy  B"<<std::endl;
+	}
+};
+ 
+class FactoryRealC:public FactoryAbstract
+{
+public: 
+	virtual void create()
+	{
+		std::cout<<"create  C"<<std::endl;
+	}
+	
+    virtual void destroy()
+	{
+		std::cout<<"destroy  C"<<std::endl;
+	}
+};
+ 
+int main()
+{
+	FactoryRealA  *A  = new FactoryRealA();
+	FactoryRealB  *B  = new FactoryRealB();
+	FactoryRealC  *C  = new FactoryRealC();
+ 
+	FactoryAbstract  *Abstract[3] = {A,B,C};
+	
+	int  num = sizeof(Abstract)/sizeof(Abstract[0]);
+	int i  = 0;
+	for(i = 0; i < num; i++)
+	{
+		Abstract[i]->create();
+	}
+ 
+	for(i = 0; i < num; i++)
+	{
+		Abstract[i]->destroy();
+	}
+}
